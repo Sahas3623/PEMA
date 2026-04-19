@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manager Dashboard - Performance Portal | PrecisionPerf</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config={darkMode:"class",theme:{extend:{
+    colors:{"surface-variant":"#e0e3e5","surface-container-low":"#f1f4f6","on-surface-variant":"#434654","primary-fixed":"#d6e3ff","surface-container-high":"#e5e9eb","surface":"#f7fafc","tertiary":"#7b2600","tertiary-fixed":"#ffdbcf","surface-container-highest":"#e0e3e5","secondary":"#526070","tertiary-container":"#a33500","primary":"#004384","surface-container":"#ebeef0","surface-container-lowest":"#ffffff","on-surface":"#181c1e","on-primary":"#ffffff","inverse-on-surface":"#eef1f3","secondary-fixed":"#d5e4f7","outline":"#737685","primary-container":"#005aaf","on-secondary-container":"#586676","background":"#f7fafc","error":"#ba1a1a","secondary-container":"#d5e4f7","on-secondary":"#ffffff","error-container":"#ffdad6","surface-bright":"#f7fafc"},
+    borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"9999px"},
+    fontFamily:{"headline":["Manrope"],"body":["Inter"],"label":["Inter"]}
+  }}}
+</script>
+<style>
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  body{font-family:'Inter',sans-serif;color:#181c1e;}
+  h1,h2,h3,h4,h5,.font-headline{font-family:'Manrope',sans-serif;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideLeft{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes barGrow{from{width:0}}
+  @keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(12px) scale(.95)}}
+  @keyframes spinAnim{to{transform:rotate(360deg)}}
+  @keyframes modalIn{from{opacity:0;transform:scale(.93) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  @keyframes overlayIn{from{opacity:0}to{opacity:1}}
+  @keyframes panelIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes countUp{from{opacity:0}to{opacity:1}}
+
+  .afu{animation:fadeUp .5s cubic-bezier(.22,.68,0,1.2) both}
+  .afi{animation:fadeIn .4s ease both}
+  .asl{animation:slideLeft .5s cubic-bezier(.22,.68,0,1.2) both}
+  .d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}
+  .d4{animation-delay:.32s}.d5{animation-delay:.40s}.d6{animation-delay:.50s}
+
+  .bar-anim{animation:barGrow 1.1s cubic-bezier(.22,.68,0,1.2) both}
+  .spin{animation:spinAnim 1s linear infinite}
+
+  .card{transition:transform .2s cubic-bezier(.22,.68,0,1.2),box-shadow .2s ease}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 32px -8px rgba(0,67,132,.13)}
+
+  .side-item{transition:background .15s,color .15s;border-radius:.75rem}
+  .side-item:hover{background:rgba(0,67,132,.07)}
+  .side-item:active{transform:scale(.97)}
+
+  #reviewModal{display:none}
+  #reviewModal.open{display:flex;animation:overlayIn .3s ease both}
+  #reviewModal .mpanel{animation:modalIn .42s cubic-bezier(.22,.68,0,1.2) both}
+
+  #profilePanel{display:none;animation:panelIn .35s cubic-bezier(.22,.68,0,1.2) both}
+  #profilePanel.open{display:flex}
+
+  .rating-btn{transition:all .18s cubic-bezier(.22,.68,0,1.2)}
+  .rating-btn:hover{transform:scale(1.1)}
+  .rating-btn.sel{background:#004384;color:#fff;border-color:#004384;box-shadow:0 4px 12px rgba(0,67,132,.3)}
+  .rating-btn:active{transform:scale(.94)}
+
+  .toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;animation:toastIn .38s cubic-bezier(.22,.68,0,1.2) both}
+  .toast.out{animation:toastOut .3s ease both}
+
+  input:focus,textarea:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(0,67,132,.18)}
+  textarea{resize:none}
+</style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+
+<!-- ── Sidebar ── -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-100 flex flex-col py-6 px-4 z-50 border-r border-slate-200/60">
+  <div class="mb-10 px-2 flex items-center gap-3 afu">
+    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">monitoring</span>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-blue-800">PrecisionPerf</h1>
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Enterprise IT Services</p>
+    </div>
+  </div>
+  <nav class="flex-1 space-y-1">
+    <a class="side-item flex items-center gap-3 px-3 py-3 text-slate-500 hover:text-blue-600 afu d1" href="../employee_dashboard/index.html"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+    <a class="side-item flex items-center gap-3 px-3 py-3 text-blue-700 font-bold border-r-4 border-blue-700 bg-blue-50 afu d2" href="../manager_dashboard/index.html">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">monitoring</span>Performance
+    </a>
+    <a class="side-item flex items-center gap-3 px-3 py-3 text-slate-500 hover:text-blue-600 afu d3" href="../employee_dashboard/index.html"><span class="material-symbols-outlined">emoji_events</span>Goals</a>
+    <a class="side-item flex items-center gap-3 px-3 py-3 text-slate-500 hover:text-blue-600 afu d3" href="../employee_dashboard/index.html"><span class="material-symbols-outlined">forum</span>Feedback</a>
+    <a class="side-item flex items-center gap-3 px-3 py-3 text-slate-500 hover:text-blue-600 afu d4" href="../hr_admin_panel/index.html"><span class="material-symbols-outlined">analytics</span>Analytics</a>
+  </nav>
+  <div class="mt-auto pt-6 space-y-1 border-t border-slate-200">
+    <button onclick="openReviewModal(null)" class="w-full mb-4 bg-gradient-to-r from-primary to-primary-container text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all afu d5">
+      <span class="material-symbols-outlined text-sm">add</span>New Appraisal
+    </button>
+    <a class="side-item flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-blue-600 text-sm" href="#"><span class="material-symbols-outlined">settings</span>Settings</a>
+    <a class="side-item flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-blue-600 text-sm" href="#"><span class="material-symbols-outlined">help</span>Support</a>
+  </div>
+</aside>
+
+<!-- ── Top Nav ── -->
+<header class="fixed top-0 right-0 left-0 h-16 ml-64 bg-white/90 backdrop-blur-md z-40 border-b border-slate-200/50 flex items-center justify-between px-8 afi">
+  <div class="flex items-center gap-8">
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+      <input id="teamSearch" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm w-64" placeholder="Search team members..." type="text"/>
+    </div>
+    <nav class="flex gap-6">
+      <a class="text-slate-500 hover:text-blue-600 font-medium text-sm transition-colors" href="../employee_dashboard/index.html">Employee</a>
+      <a class="text-blue-700 font-bold text-sm border-b-2 border-blue-700 pb-5" href="../manager_dashboard/index.html">Manager</a>
+      <a class="text-slate-500 hover:text-blue-600 font-medium text-sm transition-colors" href="../hr_admin_panel/index.html">Admin</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <button onclick="showToast('3 new notifications','info')" class="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+    </button>
+    <button class="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition-colors"><span class="material-symbols-outlined">apps</span></button>
+    <div class="h-8 w-px bg-slate-200 mx-2"></div>
+    <div class="flex items-center gap-3 cursor-pointer">
+      <div class="text-right">
+        <p class="text-xs font-bold text-on-surface">Alex Thompson</p>
+        <p class="text-[10px] text-slate-500 font-medium">Senior Engineering Lead</p>
+      </div>
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm border-2 border-primary/20">AT</div>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main ── -->
+<main class="ml-64 mt-16 p-8 min-h-screen">
+
+  <!-- Hero -->
+  <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 afu">
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-primary rounded-full text-xs font-bold mb-3">
+        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>Q3 — Manager Review Phase
+      </div>
+      <h2 class="text-3xl font-extrabold font-headline tracking-tight text-on-surface mb-2">Team Performance Landscape</h2>
+      <p class="text-on-surface-variant max-w-2xl font-medium">Global Infrastructure Team · Real-time insights into goal alignment and competency distribution.</p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="exportReport()" class="px-5 py-2.5 bg-surface-container-high text-primary rounded-xl font-bold text-sm hover:bg-white transition-all card flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">download</span>Export Report
+      </button>
+      <button onclick="syncOKRs()" id="syncBtn" class="px-5 py-2.5 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm" id="syncIcon">sync</span>Sync OKRs
+      </button>
+    </div>
+  </header>
+
+  <!-- Team stats row -->
+  <div class="grid grid-cols-4 gap-5 mb-10">
+    <div class="bg-white rounded-2xl p-5 shadow-sm card afu d1 border border-slate-100 text-center">
+      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Team Avg</p>
+      <p class="text-3xl font-extrabold text-primary" id="statAvg">0</p>
+      <p class="text-xs text-slate-400 mt-1 font-medium">/ 5.0 Rating</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm card afu d2 border border-slate-100 text-center">
+      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Reviews Done</p>
+      <p class="text-3xl font-extrabold text-green-600" id="statDone">0</p>
+      <p class="text-xs text-slate-400 mt-1 font-medium">of 8 members</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm card afu d3 border border-slate-100 text-center">
+      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Pending</p>
+      <p class="text-3xl font-extrabold text-orange-500" id="statPending">0</p>
+      <p class="text-xs text-slate-400 mt-1 font-medium">awaiting review</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm card afu d4 border border-slate-100 text-center">
+      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Goal Align</p>
+      <p class="text-3xl font-extrabold text-purple-600" id="statAlign">0%</p>
+      <p class="text-xs text-slate-400 mt-1 font-medium">corporate sync</p>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-10">
+    <!-- Performance Distribution -->
+    <div class="md:col-span-8 bg-white rounded-2xl p-8 shadow-sm card afu d2 border border-slate-100">
+      <div class="flex items-center justify-between mb-8">
+        <h3 class="font-headline font-bold text-lg">Performance Distribution</h3>
+        <div class="flex gap-4 text-xs font-bold uppercase tracking-wider">
+          <span class="flex items-center gap-1.5 text-primary"><span class="w-2.5 h-2.5 rounded-full bg-primary"></span>High</span>
+          <span class="flex items-center gap-1.5 text-orange-500"><span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>Mid</span>
+          <span class="flex items-center gap-1.5 text-error"><span class="w-2.5 h-2.5 rounded-full bg-error"></span>Needs Attention</span>
+        </div>
+      </div>
+      <div class="flex items-end gap-3 h-48" id="barChart"></div>
+      <div class="mt-4 flex justify-between" id="barLabels"></div>
+    </div>
+
+    <!-- Corporate Alignment -->
+    <div class="md:col-span-4 bg-primary rounded-2xl p-8 text-white flex flex-col items-center justify-center text-center relative overflow-hidden card afu d3">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+      <h3 class="font-headline font-bold text-lg mb-6 relative z-10">Corporate Alignment</h3>
+      <div class="relative flex items-center justify-center mb-6">
+        <svg class="w-32 h-32 -rotate-90">
+          <circle class="text-white/20" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"/>
+          <circle class="text-white" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor"
+            stroke-dasharray="364.42" stroke-dashoffset="21.9" stroke-width="10" stroke-linecap="round"
+            style="transition:stroke-dashoffset 1.5s cubic-bezier(.22,.68,0,1.2)"/>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-3xl font-extrabold font-headline leading-none" id="alignPct">0%</span>
+          <span class="text-[10px] font-bold uppercase tracking-widest opacity-80">Synced</span>
+        </div>
+      </div>
+      <p class="text-sm font-medium opacity-90 leading-relaxed mb-6">Your team is highly aligned with "Scale-to-100" enterprise objectives.</p>
+      <button onclick="showToast('Alignment map opened','info')" class="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold text-xs transition-colors backdrop-blur-sm">View Alignment Map</button>
+    </div>
+  </div>
+
+  <!-- Direct Reports -->
+  <div class="mb-6 flex items-center justify-between afu d4">
+    <h3 class="font-headline font-extrabold text-xl">Direct Reports</h3>
+    <div class="flex items-center gap-3">
+      <span class="text-xs font-bold text-on-surface-variant">Filter:</span>
+      <select id="filterSelect" class="bg-white border border-slate-200 text-xs font-bold text-primary rounded-lg px-3 py-1.5 cursor-pointer" onchange="filterTeam(this.value)">
+        <option value="all">All Members</option>
+        <option value="high">High Performers</option>
+        <option value="review">Needs Review</option>
+        <option value="pending">Pending Rating</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12" id="teamGrid"></div>
+
+  <!-- Feedback Workbench -->
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+    <div class="xl:col-span-2 space-y-6">
+      <h3 class="font-headline font-extrabold text-xl afu d5">Feedback Workbench</h3>
+      <div class="bg-white rounded-2xl overflow-hidden shadow-sm card afu d5">
+        <div class="bg-surface-container-low p-6 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-8 bg-primary rounded-full"></div>
+            <h4 class="font-headline font-bold" id="reviewTitle">New Review: Team Member</h4>
+          </div>
+          <span class="text-xs font-bold text-slate-500 uppercase" id="draftLabel">Draft Auto-saved 2m ago</span>
+        </div>
+        <div class="p-8 bg-white space-y-6">
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-4">Core Strengths</label>
+            <div class="flex flex-wrap gap-2 mb-4" id="strengthTags">
+              <span class="px-3 py-1.5 bg-primary-fixed text-blue-800 rounded-lg text-xs font-bold flex items-center gap-2">Technical Mastery <button onclick="removeStrength(this)" class="text-blue-600 hover:text-red-500 transition-colors">✕</button></span>
+              <span class="px-3 py-1.5 bg-primary-fixed text-blue-800 rounded-lg text-xs font-bold flex items-center gap-2">Team Leadership <button onclick="removeStrength(this)" class="text-blue-600 hover:text-red-500 transition-colors">✕</button></span>
+              <button onclick="addStrength()" class="px-3 py-1.5 border-2 border-dashed border-slate-200 text-slate-400 hover:border-primary hover:text-primary rounded-lg text-xs font-bold flex items-center gap-2 transition-colors">
+                <span class="material-symbols-outlined text-sm">add</span>Add Strength
+              </button>
+            </div>
+            <textarea id="strengthNarrative" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium transition-all" placeholder="Describe their impact on the team this quarter..."></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-4">Areas for Growth</label>
+            <textarea id="growthNarrative" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium transition-all" placeholder="Identify specific areas for mentorship or skill development..."></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-4">Performance Rating</label>
+            <div class="flex gap-2" id="perf-rating-btns">
+              <button class="rating-btn flex-1 py-2.5 rounded-xl border text-xs font-bold border-slate-200 text-slate-400" onclick="setPerfRating(1)">1 – Needs Imp.</button>
+              <button class="rating-btn flex-1 py-2.5 rounded-xl border text-xs font-bold border-slate-200 text-slate-400" onclick="setPerfRating(2)">2 – Developing</button>
+              <button class="rating-btn sel flex-1 py-2.5 rounded-xl border text-xs font-bold" onclick="setPerfRating(3)">3 – Meets Exp.</button>
+              <button class="rating-btn flex-1 py-2.5 rounded-xl border text-xs font-bold border-slate-200 text-slate-400" onclick="setPerfRating(4)">4 – Exceeds</button>
+              <button class="rating-btn flex-1 py-2.5 rounded-xl border text-xs font-bold border-slate-200 text-slate-400" onclick="setPerfRating(5)">5 – Outstanding</button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-6 border-t border-slate-100">
+            <div class="flex gap-4">
+              <button onclick="showToast('Audio recording started','info')" class="flex items-center gap-2 text-slate-500 hover:text-primary text-sm font-bold transition-colors">
+                <span class="material-symbols-outlined">mic</span>Record Audio
+              </button>
+              <button onclick="showToast('File attached','success')" class="flex items-center gap-2 text-slate-500 hover:text-primary text-sm font-bold transition-colors">
+                <span class="material-symbols-outlined">attach_file</span>Attach Proof
+              </button>
+            </div>
+            <div class="flex gap-3">
+              <button onclick="saveFeedbackDraft()" class="px-6 py-2.5 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200 transition-colors">Save Draft</button>
+              <button onclick="submitReview()" id="submitReviewBtn" class="px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">send</span>Submit Review
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goal Context -->
+    <div class="space-y-6 afu d6">
+      <h3 class="font-headline font-extrabold text-xl">Goal Context</h3>
+      <div class="bg-white rounded-2xl p-6 border-l-4 border-primary shadow-sm card">
+        <p class="text-[10px] font-extrabold text-primary uppercase tracking-widest mb-2">Company Objective</p>
+        <h5 class="font-headline font-bold text-lg mb-4">Infrastructure Resilience v3</h5>
+        <p class="text-sm text-on-surface-variant leading-relaxed font-medium mb-6">"Enhance global uptime to 99.999% while reducing latency across APAC nodes by 15%."</p>
+        <div class="space-y-3">
+          <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Active Team Contributions</p>
+          <div id="goalContribs"></div>
+        </div>
+        <button onclick="showToast('Goal re-alignment started','info')" class="w-full mt-6 py-3 bg-surface-container-high text-primary hover:bg-primary-fixed rounded-xl font-bold text-xs transition-colors">Re-align Team Goals</button>
+      </div>
+
+      <!-- AI Insight -->
+      <div class="bg-gradient-to-br from-slate-800 to-slate-950 rounded-2xl p-6 text-white card">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="material-symbols-outlined text-blue-400" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+          <h4 class="font-headline font-bold">AI Insight</h4>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed font-medium italic">"The team shows a 12% increase in cross-functional collaboration since the last sprint. Recommendation: Schedule a knowledge-sharing session for Sarah's new workflow."</p>
+        <button onclick="showToast('Full AI report opened','info')" class="mt-4 w-full py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-colors">View Full Analysis</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Review Modal ── -->
+<div id="reviewModal" class="fixed inset-0 bg-black/55 backdrop-blur-sm z-[200] items-center justify-center p-4">
+  <div class="mpanel bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+    <div class="border-b border-slate-100 px-8 py-5 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h3 class="text-xl font-extrabold text-on-surface" id="modalMemberName">Rate: Team Member</h3>
+        <p class="text-xs text-slate-500 mt-0.5" id="modalMemberRole">Role</p>
+      </div>
+      <button onclick="closeReviewModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+        <span class="material-symbols-outlined text-on-surface-variant">close</span>
+      </button>
+    </div>
+    <div class="overflow-y-auto flex-1 p-8 space-y-6">
+      <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+        <div id="modalAvatar" class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center text-white font-bold text-lg"></div>
+        <div>
+          <p class="font-bold" id="modalName2">—</p>
+          <p class="text-xs text-slate-500" id="modalGoal">Q3 Goal Progress: —</p>
+        </div>
+        <div class="ml-auto" id="modalStatusBadge"></div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-on-surface mb-3">Overall Performance Rating <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-5 gap-2" id="modalRatingBtns">
+          <button class="rating-btn p-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-400" onclick="setModalRating(1)"><span class="block text-lg mb-1">😔</span>1</button>
+          <button class="rating-btn p-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-400" onclick="setModalRating(2)"><span class="block text-lg mb-1">🤔</span>2</button>
+          <button class="rating-btn p-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-400" onclick="setModalRating(3)"><span class="block text-lg mb-1">👍</span>3</button>
+          <button class="rating-btn p-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-400" onclick="setModalRating(4)"><span class="block text-lg mb-1">⭐</span>4</button>
+          <button class="rating-btn p-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-400" onclick="setModalRating(5)"><span class="block text-lg mb-1">🏆</span>5</button>
+        </div>
+        <p class="text-xs text-slate-400 mt-2 text-center font-medium" id="modalRatingLabel">Select a rating</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-on-surface mb-2">Strengths</label>
+        <textarea id="modalStrengths" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-medium transition-all" placeholder="Highlight key strengths observed this cycle..."></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-on-surface mb-2">Development Areas</label>
+        <textarea id="modalGrowth" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-medium transition-all" placeholder="Areas to focus on for growth..."></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-on-surface mb-2">Promotion Recommendation</label>
+        <select id="promoRec" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-medium">
+          <option value="">-- Select --</option>
+          <option>Strongly Recommended</option>
+          <option>Recommended (next cycle)</option>
+          <option>Not Yet Ready</option>
+          <option>Needs Improvement Plan</option>
+        </select>
+      </div>
+    </div>
+    <div class="border-t border-slate-100 px-8 py-4 flex justify-between rounded-b-2xl flex-shrink-0">
+      <button onclick="closeReviewModal()" class="px-5 py-2.5 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
+      <button onclick="submitModalReview()" id="modalSubmitBtn" class="px-8 py-2.5 bg-gradient-to-r from-primary to-primary-container text-white font-bold text-sm rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">send</span>Submit Review
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script>
+const TEAM = [
+  {id:1,initials:'SJ',grad:'from-purple-400 to-pink-500',name:'Sarah Jenkins',role:'Senior DevOps Engineer',pct:88,status:'High Performer',statusClass:'bg-green-100 text-green-700',rated:true},
+  {id:2,initials:'MC',grad:'from-blue-400 to-teal-500',name:'Marcus Chen',role:'Full Stack Developer',pct:62,status:'On Track',statusClass:'bg-orange-100 text-orange-700',rated:false},
+  {id:3,initials:'LO',grad:'from-red-400 to-pink-600',name:"Liam O'Neill",role:'Junior Security Analyst',pct:41,status:'Review Required',statusClass:'bg-red-100 text-red-700',rated:false},
+  {id:4,initials:'PR',grad:'from-green-400 to-emerald-600',name:'Priya Raj',role:'Cloud Solutions Architect',pct:91,status:'High Performer',statusClass:'bg-green-100 text-green-700',rated:true},
+  {id:5,initials:'JK',grad:'from-indigo-400 to-violet-600',name:'James Kim',role:'Infrastructure Engineer',pct:75,status:'On Track',statusClass:'bg-orange-100 text-orange-700',rated:false},
+  {id:6,initials:'AT',grad:'from-amber-400 to-orange-500',name:'Aisha Thompson',role:'Platform Engineer',pct:83,status:'High Performer',statusClass:'bg-green-100 text-green-700',rated:true},
+];
+
+const CHART_DATA = [
+  {dept:'Engineering',high:85,color:'bg-primary bg-opacity-90'},
+  {dept:'Product',high:92,color:'bg-primary'},
+  {dept:'Design',high:78,color:'bg-primary bg-opacity-70'},
+  {dept:'Operations',high:65,color:'bg-primary bg-opacity-50'},
+  {dept:'Support',high:95,color:'bg-primary'},
+  {dept:'Security',high:45,color:'bg-error bg-opacity-60'},
+  {dept:'DevOps',high:82,color:'bg-primary bg-opacity-80'},
+  {dept:'QA',high:55,color:'bg-orange-400'},
+  {dept:'Data',high:88,color:'bg-primary'},
+  {dept:'Infra',high:70,color:'bg-primary bg-opacity-60'},
+];
+
+const GOAL_CONTRIBS = [
+  {label:'Automation Pipeline',status:'In Progress',statusColor:'text-primary',desc:'Sarah & Liam lead the CI/CD hardening.'},
+  {label:'Regional Database Sync',status:'Blocked',statusColor:'text-error',desc:'Marcus needs additional cloud credits.'},
+  {label:'Monitoring Setup',status:'Complete',statusColor:'text-green-600',desc:'Priya finished alerting system.'},
+];
+
+let currentMemberId = null;
+let modalRating = 0;
+let perfRating = 3;
+
+function buildBarChart(){
+  const chart = document.getElementById('barChart');
+  const labels = document.getElementById('barLabels');
+  chart.innerHTML = CHART_DATA.map((d,i)=>`
+    <div class="flex-1 relative group cursor-pointer" title="${d.dept}: ${d.high}%">
+      <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">${d.high}%</div>
+      <div class="${d.color} rounded-t-lg bar-anim" style="height:${d.high}%;animation-delay:${i*0.06}s"></div>
+    </div>
+  `).join('');
+  labels.innerHTML = `<div class="flex justify-between w-full">${CHART_DATA.map(d=>`<span class="text-[9px] font-bold text-slate-400 uppercase">${d.dept.slice(0,4)}</span>`).join('')}</div>`;
+}
+
+function buildTeamGrid(filter='all'){
+  const filtered = TEAM.filter(m=>{
+    if(filter==='high') return m.status==='High Performer';
+    if(filter==='review') return m.status==='Review Required';
+    if(filter==='pending') return !m.rated;
+    return true;
+  });
+  document.getElementById('teamGrid').innerHTML = filtered.map((m,i)=>`
+    <div class="bg-white rounded-2xl p-6 card shadow-sm afu d${Math.min(i+1,6)} border border-slate-100" id="card-${m.id}">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex gap-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${m.grad} flex items-center justify-center text-white font-bold ring-2 ring-white shadow-md">${m.initials}</div>
+          <div>
+            <h4 class="font-headline font-bold text-on-surface">${m.name}</h4>
+            <p class="text-xs text-on-surface-variant font-medium">${m.role}</p>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 ${m.statusClass} rounded-full text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap">${m.status}</span>
+      </div>
+      <div class="mb-4">
+        <div class="flex justify-between mb-1.5">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Q3 Goal Progress</span>
+          <span class="text-[10px] font-bold text-on-surface">${m.pct}%</span>
+        </div>
+        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div class="${m.pct>=80?'bg-primary':m.pct>=60?'bg-orange-400':'bg-error/60'} h-full rounded-full bar-anim" style="width:${m.pct}%;animation-delay:${i*0.08}s"></div>
+        </div>
+      </div>
+      ${m.rated?'<div class="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg mb-3"><span class="material-symbols-outlined text-green-600 text-sm" style="font-variation-settings:\'FILL\' 1;">check_circle</span><span class="text-xs text-green-700 font-bold">Review submitted</span></div>':''}
+      <div class="grid grid-cols-2 gap-2.5">
+        <button onclick="openProfile(${m.id})" class="py-2.5 bg-slate-100 text-slate-600 hover:text-primary hover:bg-slate-200 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">visibility</span>Profile
+        </button>
+        <button onclick="openReviewModal(${m.id})" class="py-2.5 ${m.rated?'bg-green-50 text-green-600 hover:bg-green-100':'bg-primary/5 text-primary hover:bg-primary/10'} rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">${m.rated?'edit':'rate_review'}</span>${m.rated?'Edit Review':'Rate'}
+        </button>
+      </div>
+    </div>
+  `).join('') || '<div class="col-span-3 text-center py-12 text-slate-400 font-medium">No team members match this filter.</div>';
+}
+
+function buildGoalContribs(){
+  document.getElementById('goalContribs').innerHTML = GOAL_CONTRIBS.map(g=>`
+    <div class="p-4 bg-surface-container-low rounded-xl hover:bg-primary-fixed transition-colors cursor-pointer card mb-3">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-bold">${g.label}</span>
+        <span class="text-[10px] font-bold ${g.statusColor}">${g.status}</span>
+      </div>
+      <p class="text-[11px] text-on-surface-variant font-medium">${g.desc}</p>
+    </div>
+  `).join('');
+}
+
+function filterTeam(val){ buildTeamGrid(val); }
+
+// Review modal
+function openReviewModal(memberId){
+  currentMemberId = memberId;
+  modalRating = 0;
+  const m = TEAM.find(x=>x.id===memberId);
+  if(m){
+    document.getElementById('modalMemberName').textContent = `Rate: ${m.name}`;
+    document.getElementById('modalMemberRole').textContent = m.role;
+    document.getElementById('modalAvatar').textContent = m.initials;
+    document.getElementById('modalAvatar').className = `w-12 h-12 rounded-xl bg-gradient-to-br ${m.grad} flex items-center justify-center text-white font-bold text-lg`;
+    document.getElementById('modalName2').textContent = m.name;
+    document.getElementById('modalGoal').textContent = `Q3 Goal Progress: ${m.pct}%`;
+    document.getElementById('modalStatusBadge').innerHTML = `<span class="px-2.5 py-1 ${m.statusClass} rounded-full text-[10px] font-extrabold">${m.status}</span>`;
+    // Set title in workbench
+    document.getElementById('reviewTitle').textContent = `New Review: ${m.name}`;
+  }
+  resetModalRatings();
+  document.getElementById('reviewModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeReviewModal(){
+  document.getElementById('reviewModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function resetModalRatings(){
+  document.querySelectorAll('#modalRatingBtns .rating-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('modalRatingLabel').textContent = 'Select a rating';
+  ['modalStrengths','modalGrowth'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  const promo = document.getElementById('promoRec');
+  if(promo) promo.value='';
+}
+
+function setModalRating(val){
+  modalRating = val;
+  const labels = ['','Needs Improvement','Developing','Meets Expectations','Exceeds Expectations','Outstanding'];
+  document.querySelectorAll('#modalRatingBtns .rating-btn').forEach((b,i)=>{
+    b.classList.toggle('sel', i<val);
+  });
+  document.getElementById('modalRatingLabel').textContent = labels[val]||'';
+}
+
+function submitModalReview(){
+  if(!modalRating){
+    showToast('Please select a performance rating','error');
+    return;
+  }
+  const btn = document.getElementById('modalSubmitBtn');
+  btn.innerHTML = '<span class="material-symbols-outlined text-sm spin">refresh</span> Submitting...';
+  btn.disabled = true;
+  const m = TEAM.find(x=>x.id===currentMemberId);
+  setTimeout(()=>{
+    if(m) m.rated = true;
+    closeReviewModal();
+    buildTeamGrid(document.getElementById('filterSelect').value);
+    showToast(`Review for ${m?.name||'member'} submitted ✓`, 'success');
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm">send</span>Submit Review';
+    btn.disabled = false;
+  }, 1600);
+}
+
+// Profile panel (inline toast for simplicity)
+function openProfile(id){
+  const m = TEAM.find(x=>x.id===id);
+  if(m) showToast(`Viewing profile: ${m.name}`, 'info');
+}
+
+function setPerfRating(val){
+  perfRating = val;
+  document.querySelectorAll('#perf-rating-btns .rating-btn').forEach((b,i)=>{
+    b.classList.toggle('sel', i<val);
+  });
+}
+
+function removeStrength(btn){
+  btn.closest('span').remove();
+}
+
+function addStrength(){
+  const tag = prompt('Enter strength tag:');
+  if(!tag) return;
+  const container = document.getElementById('strengthTags');
+  const addBtn = container.querySelector('button');
+  const span = document.createElement('span');
+  span.className = 'px-3 py-1.5 bg-primary-fixed text-blue-800 rounded-lg text-xs font-bold flex items-center gap-2';
+  span.innerHTML = `${tag} <button onclick="removeStrength(this)" class="text-blue-600 hover:text-red-500 transition-colors">✕</button>`;
+  container.insertBefore(span, addBtn);
+}
+
+function saveFeedbackDraft(){
+  document.getElementById('draftLabel').textContent = 'Saving...';
+  setTimeout(()=>{ document.getElementById('draftLabel').textContent = 'Draft saved just now'; showToast('Draft saved','success'); },1200);
+}
+
+function submitReview(){
+  const s = document.getElementById('strengthNarrative').value.trim();
+  if(!s){ showToast('Please add strength notes','error'); return; }
+  const btn = document.getElementById('submitReviewBtn');
+  btn.innerHTML = '<span class="material-symbols-outlined text-sm spin">refresh</span> Submitting...';
+  btn.disabled = true;
+  setTimeout(()=>{
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm">send</span>Submit Review';
+    btn.disabled = false;
+    showToast('Review submitted successfully','success');
+    document.getElementById('strengthNarrative').value='';
+    document.getElementById('growthNarrative').value='';
+  },1600);
+}
+
+function exportReport(){
+  showToast('Generating team performance report...','info');
+  setTimeout(()=>showToast('Report exported: Team_Q3_Performance.pdf','success'),1800);
+}
+
+function syncOKRs(){
+  const icon = document.getElementById('syncIcon');
+  const btn = document.getElementById('syncBtn');
+  icon.classList.add('spin');
+  btn.disabled=true;
+  setTimeout(()=>{
+    icon.classList.remove('spin');
+    btn.disabled=false;
+    showToast('OKRs synced from enterprise system','success');
+  },1700);
+}
+
+function countUp(id, target, suffix='', dec=0, dur=1300){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const start=performance.now();
+  (function tick(now){
+    const t=Math.min((now-start)/dur,1);
+    const ease=1-Math.pow(1-t,3);
+    el.textContent=(dec?(ease*target).toFixed(dec):Math.round(ease*target))+suffix;
+    if(t<1) requestAnimationFrame(tick);
+  })(start);
+}
+
+let tid=0;
+function showToast(msg,type='info'){
+  const c=document.getElementById('toastContainer');
+  const bg={success:'bg-green-600',error:'bg-red-600',info:'bg-slate-800'}[type];
+  const ic={success:'check_circle',error:'error',info:'info'}[type];
+  const el=document.createElement('div');
+  el.className=`toast ${bg} text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold`;
+  el.innerHTML=`<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">${ic}</span>${msg}`;
+  c.appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),350);},3200);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  buildBarChart();
+  buildTeamGrid();
+  buildGoalContribs();
+  setPerfRating(3);
+
+  setTimeout(()=>{
+    countUp('statAvg',4.1,'',1,1200);
+    countUp('statDone',5,'',0,900);
+    countUp('statPending',3,'',0,700);
+    countUp('statAlign',94,'%',0,1500);
+    countUp('alignPct',94,'%',0,1500);
+  },350);
+
+  // Team search
+  document.getElementById('teamSearch').addEventListener('input',function(){
+    const q=this.value.toLowerCase();
+    document.querySelectorAll('#teamGrid > div[id^="card-"]').forEach(card=>{
+      card.style.display=card.textContent.toLowerCase().includes(q)?'':'none';
+    });
+  });
+
+  document.getElementById('reviewModal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('reviewModal')) closeReviewModal();
+  });
+});
+</script>
+</body></html>
